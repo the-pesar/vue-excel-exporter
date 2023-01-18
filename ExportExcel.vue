@@ -1,86 +1,77 @@
 <template>
-  <div
-      :id="idName"
-      @click="generate">
-    <slot>
-      Download {{ name }}
-    </slot>
+  <div :id="idName" @click="generate">
+    <slot></slot>
   </div>
 </template>
 
 <script>
 const saveData = (function () {
-  const a = document.createElement("a");
-  document.body.appendChild(a);
-  a.style = "display: none";
+  const a = document.createElement("a")
+  document.body.appendChild(a)
+  a.style = "display: none"
   return function (data, fileName) {
     const json = data,
-        url = window.URL.createObjectURL(json);
-    a.href = url;
-    a.download = fileName;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
-}());
-
+      url = window.URL.createObjectURL(json)
+    a.href = url
+    a.download = fileName
+    a.click()
+    window.URL.revokeObjectURL(url)
+  }
+})()
 
 export default {
-  name: 'export-excel',
+  name: "export-excel",
   props: {
-    style: {
-      type: String,
-      default: 'color: #FFFFFF'
-    },
     headerColor: {
       type: String,
-      default: '#205737'
+      default: "#205737",
     },
     disabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
     type: {
       type: String,
-      default: 'xls'
+      default: "xls",
     },
     data: {
       type: Array,
       required: false,
-      default: null
+      default: null,
     },
     fields: {
       type: Object,
-      required: false
+      required: false,
     },
     exportFields: {
       type: Object,
-      required: false
+      required: false,
     },
     defaultValue: {
       type: String,
       required: false,
-      default: ''
+      default: "",
     },
     title: {
-      default: null
+      default: null,
     },
     footer: {
-      default: null
+      default: null,
     },
     name: {
       type: String,
-      default: 'file_excel.xls'
+      default: "file_excel.xls",
     },
     fetch: {
       type: Function,
     },
     meta: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     worksheet: {
       type: String,
-      default: 'Sheet1'
+      default: "Sheet1",
     },
     beforeGenerate: {
       type: Function,
@@ -92,7 +83,7 @@ export default {
   computed: {
     idName() {
       const now = new Date().getTime()
-      return 'export_' + now
+      return "export_" + now
     },
 
     // eslint-disable-next-line vue/return-in-computed-property
@@ -100,7 +91,7 @@ export default {
       if (this.fields !== undefined) return this.fields
 
       if (this.exportFields !== undefined) return this.exportFields
-    }
+    },
   },
   methods: {
     saveData,
@@ -108,49 +99,47 @@ export default {
       if (this.disabled) {
         return
       }
-      if (typeof this.beforeGenerate === 'function') {
+      if (typeof this.beforeGenerate === "function") {
         await this.beforeGenerate()
       }
       let data = this.data
-      if (typeof this.fetch === 'function' || !data)
-        data = await this.fetch()
+      if (typeof this.fetch === "function" || !data) data = await this.fetch()
 
       if (!data || !data.length) {
         return
       }
 
       const json = this.getProcessedJson(data, this.downloadFields)
-      if (this.type === 'html') {
+      if (this.type === "html") {
         return this.export(
-            this.jsonToXLS(json),
-            this.name.replace('.xls', '.html'),
-            'text/html'
+          this.jsonToXLS(json),
+          this.name.replace(".xls", ".html"),
+          "text/html"
         )
-      } else if (this.type === 'csv') {
+      } else if (this.type === "csv") {
         return this.export(
-            this.jsonToCSV(json),
-            this.name.replace('.xls', '.csv'),
-            'application/csv'
+          this.jsonToCSV(json),
+          this.name.replace(".xls", ".csv"),
+          "application/csv"
         )
       }
       return this.export(
-          this.jsonToXLS(json),
-          this.name,
-          'application/vnd.ms-excel'
+        this.jsonToXLS(json),
+        this.name,
+        "application/vnd.ms-excel"
       )
     },
 
     export: async function (data, filename, mime) {
       const blob = this.base64ToBlob(data, mime)
-      if (typeof this.beforeFinish === 'function')
-        await this.beforeFinish()
+      if (typeof this.beforeFinish === "function") await this.beforeFinish()
       saveData(blob, filename)
     },
 
     jsonToXLS(data) {
       const xlsTemp =
-          '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta name=ProgId content=Excel.Sheet> <meta name=Generator content="Microsoft Excel 11"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>${worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>br {mso-data-placement: same-cell;}</style></head><body><table>${table}</table></body></html>'
-      let xlsData = '<thead>'
+        '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta name=ProgId content=Excel.Sheet> <meta name=Generator content="Microsoft Excel 11"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>${worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>br {mso-data-placement: same-cell;}</style></head><body><table>${table}</table></body></html>'
+      let xlsData = "<thead>"
       const colspan = Object.keys(data[0]).length
       // eslint-disable-next-line @typescript-eslint/no-this-alias
       const _self = this
@@ -158,56 +147,68 @@ export default {
       //Header
       if (this.title != null) {
         xlsData += this.parseExtraData(
-            this.title,
-            '<tr><th style="font-size: 30px" colspan="' + colspan + '">${data}</th></tr>'
+          this.title,
+          '<tr><th style="font-size: 30px" colspan="' +
+            colspan +
+            '">${data}</th></tr>'
         )
       }
 
       //Fields
-      xlsData += '<tr>'
+      xlsData += "<tr>"
       for (const key in data[0]) {
-        xlsData += `<th bgcolor="${this.headerColor}" style="font-size: 18px; color: #FEFEFE">` + key + '</th>'
+        xlsData +=
+          `<th bgcolor="${this.headerColor}" style="font-size: 18px; color: #FEFEFE">` +
+          key +
+          "</th>"
       }
-      xlsData += '</tr>'
-      xlsData += '</thead>'
+      xlsData += "</tr>"
+      xlsData += "</thead>"
 
       //Data
-      xlsData += '<tbody>'
+      xlsData += "<tbody>"
       data.map(function (item, index) {
-        xlsData += '<tr>'
+        xlsData += "<tr>"
         for (const key in item) {
-          xlsData += '<td style="border: 1px solid #303030">' + _self.valueReformattedForMultilines(item[key]) + '</td>'
+          xlsData +=
+            '<td style="border: 1px solid #303030">' +
+            _self.valueReformattedForMultilines(item[key]) +
+            "</td>"
         }
-        xlsData += '</tr>'
+        xlsData += "</tr>"
       })
-      xlsData += '</tbody>'
+      xlsData += "</tbody>"
 
       //Footer
       if (this.footer != null) {
-        xlsData += '<tfoot>'
+        xlsData += "<tfoot>"
         xlsData += this.parseExtraData(
-            this.footer,
-            '<tr><td style="border: 1px solid #303030" colspan="' + colspan + '">${data}</td></tr>'
+          this.footer,
+          '<tr><td style="border: 1px solid #303030" colspan="' +
+            colspan +
+            '">${data}</td></tr>'
         )
-        xlsData += '</tfoot>'
+        xlsData += "</tfoot>"
       }
 
-      return xlsTemp.replace('${table}', xlsData).replace('${worksheet}', this.worksheet)
+      return xlsTemp
+        .replace("${table}", xlsData)
+        .replace("${worksheet}", this.worksheet)
     },
 
     jsonToCSV(data) {
       var csvData = []
       //Header
       if (this.title != null) {
-        csvData.push(this.parseExtraData(this.title, '${data}\r\n'))
+        csvData.push(this.parseExtraData(this.title, "${data}\r\n"))
       }
       //Fields
       for (const key in data[0]) {
         csvData.push(key)
-        csvData.push(',')
+        csvData.push(",")
       }
       csvData.pop()
-      csvData.push('\r\n')
+      csvData.push("\r\n")
       //Data
       data.map(function (item) {
         for (const key in item) {
@@ -216,16 +217,16 @@ export default {
             escapedCSV = '"' + escapedCSV.replace(/"/g, '""') + '"'
           }
           csvData.push(escapedCSV)
-          csvData.push(',')
+          csvData.push(",")
         }
         csvData.pop()
-        csvData.push('\r\n')
+        csvData.push("\r\n")
       })
       //Footer
       if (this.footer != null) {
-        csvData.push(this.parseExtraData(this.footer, '${data}\r\n'))
+        csvData.push(this.parseExtraData(this.footer, "${data}\r\n"))
       }
-      return csvData.join('')
+      return csvData.join("")
     },
 
     getProcessedJson(data, header) {
@@ -258,61 +259,57 @@ export default {
     },
 
     parseExtraData(extraData, format) {
-      let parseData = ''
+      let parseData = ""
       if (Array.isArray(extraData)) {
         for (var i = 0; i < extraData.length; i++) {
-          parseData += format.replace('${data}', extraData[i])
+          parseData += format.replace("${data}", extraData[i])
         }
       } else {
-        parseData += format.replace('${data}', extraData)
+        parseData += format.replace("${data}", extraData)
       }
       return parseData
     },
 
     getValue(key, item) {
-      const field = typeof key !== 'object' ? key : key.field
-      const indexes = typeof field !== 'string' ? [] : field.split('.')
+      const field = typeof key !== "object" ? key : key.field
+      const indexes = typeof field !== "string" ? [] : field.split(".")
       let value = this.defaultValue
 
-      if (!field)
-        value = item
+      if (!field) value = item
       else if (indexes.length > 1)
         value = this.getValueFromNestedItem(item, indexes)
-      else
-        value = this.parseValue(item[field])
+      else value = this.parseValue(item[field])
 
       // eslint-disable-next-line no-prototype-builtins
-      if (key.hasOwnProperty('callback'))
+      if (key.hasOwnProperty("callback"))
         value = this.getValueFromCallback(value, key.callback)
 
       return value
     },
 
     valueReformattedForMultilines(value) {
-      if (typeof (value) == 'string') return (value.replace(/\n/ig, '<br/>'))
-      else return (value)
+      if (typeof value == "string") return value.replace(/\n/gi, "<br/>")
+      else return value
     },
 
     getValueFromNestedItem(item, indexes) {
       let nestedItem = item
       for (const index of indexes) {
-        if (nestedItem)
-          nestedItem = nestedItem[index]
+        if (nestedItem) nestedItem = nestedItem[index]
       }
       return this.parseValue(nestedItem)
     },
 
     getValueFromCallback(item, callback) {
-      if (typeof callback !== 'function')
-        return this.defaultValue
+      if (typeof callback !== "function") return this.defaultValue
       const value = callback(item)
       return this.parseValue(value)
     },
 
     parseValue(value) {
-      return value || value === 0 || typeof value === 'boolean'
-          ? value
-          : this.defaultValue
+      return value || value === 0 || typeof value === "boolean"
+        ? value
+        : this.defaultValue
     },
 
     base64ToBlob(data, mime) {
@@ -323,8 +320,8 @@ export default {
       while (n--) {
         u8arr[n] = bstr.charCodeAt(n)
       }
-      return new Blob([u8arr], {type: mime})
-    }
-  }
+      return new Blob([u8arr], { type: mime })
+    },
+  },
 }
 </script>
