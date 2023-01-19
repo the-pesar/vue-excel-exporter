@@ -1,7 +1,7 @@
 {
   "name": "vue-excel-exporter",
-  "version": "0.0.1",
-  "description": "export excel component for Vue.js",
+  "version": "0.1.0",
+  "description": "Export Excel Component For Vue.js",
   "main": "index.js",
   "repository": {
     "type": "git",
@@ -9,17 +9,21 @@
   },
   "keywords": [
     "vue",
+    "vue2",
     "vue3",
     "export",
     "excel",
     "csv",
+    "xls",
+    "xlsx",
     "json",
     "download"
   ],
   "author": "Pesar",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/the-pesar/vue-excel-exporter/issues"
+    "url": "https://github.com/the-pesar/vue-excel-exporter/issues",
+    "email": "pesar369@gmail.com"
   },
   "homepage": "https://github.com/the-pesar/vue-excel-exporter#readme"
 }

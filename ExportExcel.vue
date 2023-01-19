@@ -20,11 +20,11 @@ const saveData = (function () {
 })()
 
 export default {
-  name: "export-excel",
+  name: "excel-exporter",
   props: {
     headerColor: {
       type: String,
-      default: "#205737",
+      default: "#fff",
     },
     disabled: {
       type: Boolean,
